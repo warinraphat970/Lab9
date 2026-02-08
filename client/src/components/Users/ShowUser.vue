@@ -1,31 +1,54 @@
 <template>
   <div>
     <h1>Show User</h1>
-    <p>User ID: {{ this.user.id }}</p>
-    <p>User Email: {{ this.user.email }}</p>
-    <p>User First Name: {{ this.user.name }}</p>
-    <p>User Last Name: {{ this.user.lastname }}</p>
 
+    <div v-if="user">
+      <p>id: {{ user.id }}</p>
+      <p>ชื่อ-นามสกุล: {{ user.name }} {{ user.lastname }}</p>
+      <p>email: {{ user.email }}</p>
+      <p>password: {{ user.password }}</p>
+    </div>
+
+    <div v-else>
+      Loading...
+    </div>
   </div>
 </template>
 
 <script>
-import UserServices from '../../services/UsersService'
+import UsersService from '../../services/UsersService'
+
 export default {
-  // Logic จะเขียนตรงนี้
   data () {
     return {
-      user: null
+      userId: null, // id จาก URL
+      user: null    // ข้อมูล user จาก backend
     }
   },
-  async created () {
-    var userId = this.$route.params.userId 
-    this.user = (await UserServices.show(userId)).data
-    console.log("created userId:", this.user)
+
+  mounted () {
+    this.userId = this.$route.params.id
+    this.fetchUser()
   },
+
+  watch: {
+    '$route.params.id'(newId) {
+      this.userId = newId
+      this.fetchUser()
+    }
+  },
+
+  methods: {
+    fetchUser () {
+      UsersService.show(this.userId)
+        .then(res => {
+          console.log('API RESPONSE:', res.data)
+          this.user = res.data
+        })
+        .catch(err => {
+          console.log(err)
+        })
+    }
+  }
 }
 </script>
-
-<style scoped>
-/* CSS เฉพาะหน้านี้ */
-</style>
